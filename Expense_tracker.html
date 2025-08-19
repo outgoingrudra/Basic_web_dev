@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expense Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex items-center justify-center p-6">
+  <div class="w-full max-w-xl bg-white rounded-2xl shadow-xl p-6">
+    <h1 class="text-3xl font-bold mb-6 text-center">💰 Expense Tracker</h1>
+
+    <form id="transaction-form" class="flex flex-col md:flex-row gap-4 mb-6">
+      <input id="desc" type="text" placeholder="Description" class="border p-2 rounded-md flex-1" required />
+      <input id="amount" type="number" placeholder="Amount (+/-)" class="border p-2 rounded-md w-32" required />
+      <select id="category" class="border p-2 rounded-md">
+        <option value="income">Income</option>
+        <option value="food">Food</option>
+        <option value="transport">Transport</option>
+        <option value="shopping">Shopping</option>
+      </select>
+      <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md shadow hover:bg-blue-600">Add</button>
+    </form>
+
+    <div class="mb-4">
+      <h2 class="text-xl font-semibold">Balance: ₹<span id="balance">0</span></h2>
+    </div>
+
+    <div class="mb-4">
+      <label for="filter" class="block mb-1 font-medium">Filter by Category:</label>
+      <select id="filter" class="border p-2 rounded-md w-full">
+        <option value="all">All</option>
+        <option value="income">Income</option>
+        <option value="food">Food</option>
+        <option value="transport">Transport</option>
+        <option value="shopping">Shopping</option>
+      </select>
+    </div>
+
+    <ul id="transactions" class="space-y-3 max-h-60 overflow-y-auto"></ul>
+  </div>
+
+  <script>
+    const form = document.getElementById("transaction-form");
+    const desc = document.getElementById("desc");
+    const amount = document.getElementById("amount");
+    const category = document.getElementById("category");
+    const filter = document.getElementById("filter");
+    const transactionsEl = document.getElementById("transactions");
+    const balanceEl = document.getElementById("balance");
+
+    let transactions = JSON.parse(localStorage.getItem("expenses")) || [];
+
+    function saveAndRender() {
+      localStorage.setItem("expenses", JSON.stringify(transactions));
+      renderTransactions();
+    }
+
+    function renderTransactions() {
+      const currentFilter = filter.value;
+      transactionsEl.innerHTML = "";
+      let total = 0;
+
+      transactions.forEach((tx, index) => {
+        if (currentFilter !== "all" && tx.category !== currentFilter) return;
+
+        const li = document.createElement("li");
+        li.className = `flex justify-between items-center border-l-4 p-3 shadow rounded-md ${tx.amount > 0 ? "border-green-400 bg-green-50" : "border-red-400 bg-red-50"}`;
+
+        li.innerHTML = `
+          <div>
+            <p class="font-semibold">${tx.description}</p>
+            <p class="text-sm text-gray-500">${tx.category}</p>
+          </div>
+          <div class="text-right">
+            <p>${tx.amount > 0 ? "+" : ""}₹${tx.amount}</p>
+            <button onclick="deleteTransaction(${index})" class="text-xs text-red-500 hover:underline">Delete</button>
+          </div>
+        `;
+
+        transactionsEl.appendChild(li);
+        total += parseFloat(tx.amount);
+      });
+
+      balanceEl.textContent = total.toFixed(2);
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const newTx = {
+        description: desc.value,
+        amount: parseFloat(amount.value),
+        category: category.value,
+      };
+      transactions.push(newTx);
+      saveAndRender();
+      form.reset();
+    });
+
+    filter.addEventListener("change", renderTransactions);
+
+    function deleteTransaction(index) {
+      transactions.splice(index, 1);
+      saveAndRender();
+    }
+
+    renderTransactions();
+  </script>
+</body>
+</html>
