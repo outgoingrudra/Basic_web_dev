@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Scientific Calculator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body.dark {
+      background-color: #1a202c;
+      color: white;
+    }
+    .btn {
+      @apply p-4 rounded-lg shadow-md bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 active:scale-95 transition;
+    }
+    .func {
+      @apply bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-200;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 transition-all duration-300">
+
+  <div class="w-full max-w-sm bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-2xl font-bold">🧮 Calculator</h1>
+      <button onclick="toggleDark()" class="px-2 py-1 text-sm rounded bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600">🌓</button>
+    </div>
+
+    <!-- Display -->
+    <input type="text" id="display" class="w-full text-right text-2xl p-3 mb-4 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:outline-none" readonly />
+
+    <!-- Buttons -->
+    <div class="grid grid-cols-4 gap-3">
+      <button class="btn func" onclick="clearDisplay()">AC</button>
+      <button class="btn func" onclick="delChar()">DEL</button>
+      <button class="btn func" onclick="append('%')">%</button>
+      <button class="btn func" onclick="append('/')">÷</button>
+
+      <button class="btn" onclick="append('7')">7</button>
+      <button class="btn" onclick="append('8')">8</button>
+      <button class="btn" onclick="append('9')">9</button>
+      <button class="btn func" onclick="append('*')">×</button>
+
+      <button class="btn" onclick="append('4')">4</button>
+      <button class="btn" onclick="append('5')">5</button>
+      <button class="btn" onclick="append('6')">6</button>
+      <button class="btn func" onclick="append('-')">−</button>
+
+      <button class="btn" onclick="append('1')">1</button>
+      <button class="btn" onclick="append('2')">2</button>
+      <button class="btn" onclick="append('3')">3</button>
+      <button class="btn func" onclick="append('+')">+</button>
+
+      <button class="btn" onclick="append('0')">0</button>
+      <button class="btn" onclick="append('.')">.</button>
+      <button class="btn func" onclick="calculate()">=</button>
+      <button class="btn func" onclick="append('^')">^</button>
+
+      <button class="btn func" onclick="append('sin(')">sin</button>
+      <button class="btn func" onclick="append('cos(')">cos</button>
+      <button class="btn func" onclick="append('tan(')">tan</button>
+      <button class="btn func" onclick="append('sqrt(')">√</button>
+
+      <button class="btn func" onclick="append('log(')">log</button>
+      <button class="btn func" onclick="append('ln(')">ln</button>
+      <button class="btn func" onclick="append('!')">x!</button>
+      <button class="btn func" onclick="append('(')">(</button>
+
+      <button class="btn func" onclick="append(')')">)</button>
+    </div>
+  </div>
+
+  <script>
+    const display = document.getElementById("display");
+
+    function append(val) {
+      display.value += val;
+    }
+
+    function clearDisplay() {
+      display.value = '';
+    }
+
+    function delChar() {
+      display.value = display.value.slice(0, -1);
+    }
+
+    function factorial(n) {
+      if (n < 0) return NaN;
+      return n <= 1 ? 1 : n * factorial(n - 1);
+    }
+
+    function calculate() {
+      let expr = display.value
+        .replace(/÷/g, "/")
+        .replace(/×/g, "*")
+        .replace(/√/g, "Math.sqrt")
+        .replace(/sin/g, "Math.sin")
+        .replace(/cos/g, "Math.cos")
+        .replace(/tan/g, "Math.tan")
+        .replace(/log/g, "Math.log10")
+        .replace(/ln/g, "Math.log")
+        .replace(/π/g, "Math.PI")
+        .replace(/e/g, "Math.E")
+        .replace(/\^/g, "**");
+
+      // Handle factorial
+      expr = expr.replace(/(\d+)!/g, (_, n) => factorial(Number(n)));
+
+      try {
+        display.value = eval(expr);
+      } catch (e) {
+        display.value = "Error";
+      }
+    }
+
+    function toggleDark() {
+      document.body.classList.toggle("dark");
+    }
+
+    // Optional: Keyboard support
+    document.addEventListener("keydown", (e) => {
+      if ("0123456789+-*/().".includes(e.key)) {
+        append(e.key);
+      } else if (e.key === "Enter") {
+        calculate();
+      } else if (e.key === "Backspace") {
+        delChar();
+      }
+    });
+  </script>
+</body>
+</html>
