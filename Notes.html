@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Notes App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-4">
+  <div class="max-w-3xl mx-auto">
+    <h1 class="text-3xl font-bold text-center mb-4">📝 Notes App</h1>
+
+    <!-- Add Note Section -->
+    <div class="bg-white p-4 rounded shadow mb-4">
+      <input id="title" type="text" placeholder="Note Title" class="w-full p-2 mb-2 border rounded" />
+      <textarea id="content" rows="4" placeholder="Note Content" class="w-full p-2 border rounded mb-2"></textarea>
+      <select id="tag" class="w-full p-2 border rounded mb-2">
+        <option value="bg-blue-100">Blue Tag</option>
+        <option value="bg-green-100">Green Tag</option>
+        <option value="bg-yellow-100">Yellow Tag</option>
+        <option value="bg-pink-100">Pink Tag</option>
+      </select>
+      <button onclick="addNote()" class="bg-blue-600 text-white px-4 py-2 rounded w-full">Add Note</button>
+    </div>
+
+    <!-- Search -->
+    <input id="search" type="text" onkeyup="filterNotes()" placeholder="Search by Title..." class="w-full p-2 border rounded mb-4"/>
+
+    <!-- Notes List -->
+    <div id="notesContainer" class="grid md:grid-cols-2 gap-4"></div>
+  </div>
+
+  <script>
+    let notes = JSON.parse(localStorage.getItem("notes")) || [];
+    let editIndex = null;
+
+    function renderNotes() {
+      const container = document.getElementById("notesContainer");
+      container.innerHTML = "";
+      notes.forEach((note, index) => {
+        const noteCard = document.createElement("div");
+        noteCard.className = `p-4 rounded shadow ${note.tag}`;
+
+        noteCard.innerHTML = `
+          <h2 class="font-bold text-xl mb-1">${note.title}</h2>
+          <p class="mb-2">${note.content}</p>
+          <div class="flex justify-end gap-2">
+            <button onclick="editNote(${index})" class="text-blue-600">📝</button>
+            <button onclick="deleteNote(${index})" class="text-red-600">🗑️</button>
+          </div>
+        `;
+        container.appendChild(noteCard);
+      });
+    }
+
+    function addNote() {
+      const title = document.getElementById("title").value.trim();
+      const content = document.getElementById("content").value.trim();
+      const tag = document.getElementById("tag").value;
+
+      if (title === "" || content === "") {
+        alert("Title and content are required!");
+        return;
+      }
+
+      if (editIndex === null) {
+        notes.push({ title, content, tag });
+      } else {
+        notes[editIndex] = { title, content, tag };
+        editIndex = null;
+      }
+
+      localStorage.setItem("notes", JSON.stringify(notes));
+      document.getElementById("title").value = "";
+      document.getElementById("content").value = "";
+      renderNotes();
+    }
+
+    function editNote(index) {
+      document.getElementById("title").value = notes[index].title;
+      document.getElementById("content").value = notes[index].content;
+      document.getElementById("tag").value = notes[index].tag;
+      editIndex = index;
+    }
+
+    function deleteNote(index) {
+      if (confirm("Delete this note?")) {
+        notes.splice(index, 1);
+        localStorage.setItem("notes", JSON.stringify(notes));
+        renderNotes();
+      }
+    }
+
+    function filterNotes() {
+      const search = document.getElementById("search").value.toLowerCase();
+      const cards = document.querySelectorAll("#notesContainer > div");
+      notes.forEach((note, index) => {
+        const isMatch = note.title.toLowerCase().includes(search);
+        cards[index].style.display = isMatch ? "block" : "none";
+      });
+    }
+
+    renderNotes();
+  </script>
+</body>
+</html>
