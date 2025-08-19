@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dictionary App</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <script>
+    // Dark mode persistence
+    if (localStorage.theme === 'dark' ||
+      (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  </script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-300">
+
+  <!-- Header -->
+  <header class="text-center py-6 shadow-md dark:shadow-gray-800 bg-white dark:bg-gray-800">
+    <h1 class="text-3xl font-bold">📚 Dictionary App</h1>
+      <h1>Welcome 😊</h1>
+  </header>
+
+  <!-- Main -->
+  <main class="p-4 max-w-xl mx-auto mt-6">
+    <div class="flex gap-2">
+      <input id="wordInput" type="text" placeholder="Enter a word..." 
+             class="w-full px-4 py-2 border rounded focus:outline-none focus:ring dark:bg-gray-700 dark:border-gray-600" />
+      <button onclick="searchWord()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+        Search
+      </button>
+    </div>
+
+    <div id="result" class="mt-6 space-y-4 hidden">
+      <h2 class="text-xl font-semibold" id="wordTitle"></h2>
+      <p><strong>Phonetic:</strong> <span id="phonetic"></span></p>
+      <button id="audioBtn" class="text-blue-600 underline hover:text-blue-800 hidden">🔊 Play Pronunciation</button>
+      <p><strong>Part of Speech:</strong> <span id="partOfSpeech"></span></p>
+      <p><strong>Definition:</strong> <span id="definition"></span></p>
+      <p id="examplePara"><strong>Example:</strong> <span id="example"></span></p>
+    </div>
+
+    <div id="error" class="text-red-600 mt-4 font-semibold hidden"></div>
+  </main>
+
+  <!-- Script -->
+  <script>
+    function toggleDarkMode() {
+      document.documentElement.classList.toggle('dark');
+      localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+    }
+
+    async function searchWord() {
+      const word = document.getElementById("wordInput").value.trim();
+      const resultDiv = document.getElementById("result");
+      const errorDiv = document.getElementById("error");
+      const examplePara = document.getElementById("examplePara");
+
+      resultDiv.classList.add("hidden");
+      errorDiv.classList.add("hidden");
+
+      if (!word) {
+        errorDiv.textContent = "Please enter a word.";
+        errorDiv.classList.remove("hidden");
+        return;
+      }
+
+      try {
+        const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+        if (!res.ok) throw new Error("Word not found!");
+
+        const data = await res.json();
+        const meaning = data[0];
+        const defs = meaning.meanings[0].definitions[0];
+
+        document.getElementById("wordTitle").textContent = meaning.word;
+        document.getElementById("phonetic").textContent = meaning.phonetic || "N/A";
+        document.getElementById("partOfSpeech").textContent = meaning.meanings[0].partOfSpeech || "N/A";
+        document.getElementById("definition").textContent = defs.definition || "N/A";
+
+        if (defs.example) {
+          examplePara.classList.remove("hidden");
+          document.getElementById("example").textContent = defs.example;
+        } else {
+          examplePara.classList.add("hidden");
+        }
+
+        // Audio pronunciation
+        const audio = meaning.phonetics.find(p => p.audio);
+        const audioBtn = document.getElementById("audioBtn");
+        if (audio && audio.audio) {
+          const audioObj = new Audio(audio.audio);
+          audioBtn.classList.remove("hidden");
+          audioBtn.onclick = () => audioObj.play();
+        } else {
+          audioBtn.classList.add("hidden");
+        }
+
+        resultDiv.classList.remove("hidden");
+
+      } catch (err) {
+        errorDiv.textContent = err.message;
+        errorDiv.classList.remove("hidden");
+      }
+    }
+  </script>
+</body>
+</html>
