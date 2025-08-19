@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quiz App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-r from-indigo-100 to-purple-100 min-h-screen flex items-center justify-center">
+
+  <div class="w-full max-w-xl bg-white rounded-2xl shadow-2xl p-6 space-y-4" id="quiz-container">
+    <h1 class="text-2xl font-bold text-center text-indigo-700">🧠 Quiz App</h1>
+
+    <!-- Progress Bar -->
+    <div class="w-full bg-gray-200 rounded-full h-4 mb-4">
+      <div id="progressBar" class="bg-indigo-500 h-4 rounded-full transition-all duration-300 ease-in-out" style="width: 0%"></div>
+    </div>
+
+    <!-- Question -->
+    <div id="question" class="text-lg font-semibold text-gray-800"></div>
+
+    <!-- Options -->
+    <div id="options" class="grid gap-3"></div>
+
+    <!-- Next Button -->
+    <button onclick="nextQuestion()" id="nextBtn" class="mt-4 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl shadow-md disabled:opacity-50">
+      Next
+    </button>
+
+    <!-- Score -->
+    <div id="scoreBox" class="hidden text-center">
+      <h2 class="text-xl font-bold text-green-700">🎉 Quiz Completed!</h2>
+      <p id="scoreText" class="text-lg mt-2"></p>
+      <p class="text-sm text-gray-500 mt-1" id="highScoreText"></p>
+      <button onclick="restartQuiz()" class="mt-3 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl shadow-md">
+        Restart Quiz
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        q: "What is the capital of France?",
+        options: ["Berlin", "Madrid", "Paris", "Lisbon"],
+        answer: 2,
+      },
+      {
+        q: "Which language runs in a web browser?",
+        options: ["Java", "C", "Python", "JavaScript"],
+        answer: 3,
+      },
+      {
+        q: "What does CSS stand for?",
+        options: [
+          "Central Style Sheets",
+          "Cascading Style Sheets",
+          "Computer Style Sheets",
+          "Creative Style Sheets",
+        ],
+        answer: 1,
+      },
+      {
+        q: "Inside which HTML element do we put JavaScript?",
+        options: ["<js>", "<script>", "<javascript>", "<code>"],
+        answer: 1,
+      },
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    const nextBtn = document.getElementById("nextBtn");
+    const progressBar = document.getElementById("progressBar");
+    const scoreBox = document.getElementById("scoreBox");
+    const scoreText = document.getElementById("scoreText");
+    const highScoreText = document.getElementById("highScoreText");
+
+    function loadQuestion() {
+      const q = questions[currentQuestion];
+      questionEl.textContent = `${currentQuestion + 1}. ${q.q}`;
+      optionsEl.innerHTML = "";
+      q.options.forEach((opt, index) => {
+        const btn = document.createElement("button");
+        btn.className = "w-full px-4 py-2 text-left bg-indigo-100 hover:bg-indigo-200 rounded-lg shadow";
+        btn.textContent = opt;
+        btn.onclick = () => selectOption(index);
+        optionsEl.appendChild(btn);
+      });
+
+      // Update progress
+      const progressPercent = ((currentQuestion) / questions.length) * 100;
+      progressBar.style.width = `${progressPercent}%`;
+      nextBtn.disabled = true;
+    }
+
+    function selectOption(selected) {
+      const correct = questions[currentQuestion].answer;
+      const buttons = optionsEl.querySelectorAll("button");
+
+      buttons.forEach((btn, index) => {
+        if (index === correct) {
+          btn.classList.add("bg-green-300");
+        } else if (index === selected) {
+          btn.classList.add("bg-red-300");
+        }
+        btn.disabled = true;
+      });
+
+      if (selected === correct) score++;
+      nextBtn.disabled = false;
+    }
+
+    function nextQuestion() {
+      currentQuestion++;
+      if (currentQuestion < questions.length) {
+        loadQuestion();
+      } else {
+        showScore();
+      }
+    }
+
+    function showScore() {
+      document.getElementById("question").classList.add("hidden");
+      document.getElementById("options").classList.add("hidden");
+      nextBtn.classList.add("hidden");
+      progressBar.style.width = "100%";
+      scoreBox.classList.remove("hidden");
+
+      scoreText.textContent = `You scored ${score} out of ${questions.length}`;
+
+      const highScore = localStorage.getItem("quizHighScore") || 0;
+      if (score > highScore) {
+        localStorage.setItem("quizHighScore", score);
+        highScoreText.textContent = "🎉 New High Score!";
+      } else {
+        highScoreText.textContent = `🥇 High Score: ${highScore}`;
+      }
+    }
+
+    function restartQuiz() {
+      currentQuestion = 0;
+      score = 0;
+      document.getElementById("question").classList.remove("hidden");
+      document.getElementById("options").classList.remove("hidden");
+      nextBtn.classList.remove("hidden");
+      scoreBox.classList.add("hidden");
+      loadQuestion();
+    }
+
+    // Load first question
+    loadQuestion();
+  </script>
+</body>
+</html>
